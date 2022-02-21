@@ -16,25 +16,26 @@ def count_manage(n):
     count += n
 
 def add_embed(title, descrip, type):
-    #ckシス研 glゲームラボ erエラー通知
-    if type == "ck":
-        embed = discord.Embed(title=title, description=descrip, color=0x66A6FF)
-    elif type == "gl":
-        embed = discord.Embed(title=title, description=descrip, color=0xCA80FF)
-    elif type == "er":
-        embed = discord.Embed(title=title, description=descrip, color=0xFF0000)
-    
+    #ckシス研 水色 glゲームラボ 紫 erエラー通知 赤 dict型
+    type_dict = {'ck': 0x66A6FF, 'gl': 0xCA80FF, 'er': 0xFF0000}
+    embed = discord.Embed(title=title, description=descrip, color=type_dict[type])
     embed.set_footer(text="部屋人数管理システム")
     return embed
 
+def write_logfile(ctx, c, io_type):
+    with open(filename, "a") as f:
+        f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} シス研 {ctx.author} {io_type}:{c} sum:{count}\n")
+
+#ログファイル生成
 filename = time.strftime("room-%Y-%m-%d-%H-%M-%S") + ".log"
 open(filename, "w").close()
 
 #初期設定
 @bot.listen()
 async def on_ready():
-    print('Logged in as\n' + bot.user.name + "/n" + bot.user.id + "/n------")
-    await bot.change_presence(status=discord.Status.online, activity=discord.Game('/help'))
+    print('Logged in as\n' + bot.user.name + "\n" + str(bot.user.id) + "\n------")
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game('/enter, /exit'))
+    await bot.user.edit(username='部屋人数管理システム')
 
 @bot.slash_command(guild_ids=[sk_serverid, gl_serverid])
 async def enter(
@@ -56,15 +57,13 @@ async def enter(
         embed = add_embed("利用通知", f'シス研で{num}人入室しました。現在の利用人数は{count}人です。', "ck")
         await ctx.respond(embed=embed)
         await glch.send(embed=embed)
-        with open(filename, "a") as f:
-            f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} シス研 {ctx.author} in:{num} sum:{count}\n")
+        write_logfile(ctx, num, "in")
 
     elif str(ctx.channel.id) == gl_channelid:
         embed = add_embed("利用通知", f'ゲームラボで{num}人入室しました。現在の利用人数は{count}人です。', "gl")
         await ctx.respond(embed=embed)
         await skch.send(embed=embed)
-        with open(filename, "a") as f:
-            f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} ゲームラボ {ctx.author} in:{num} sum:{count}\n")
+        write_logfile(ctx, num, "in")
 
 @bot.slash_command(guild_ids=[sk_serverid, gl_serverid])
 async def exit(
@@ -86,14 +85,12 @@ async def exit(
         embed = add_embed("利用通知", f'シス研で{num}人退室しました。現在の利用人数は{count}人です。', "ck")
         await ctx.respond(embed=embed)
         await glch.send(embed=embed)
-        with open(filename, "a") as f:
-            f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} シス研 {ctx.author} out:{num} sum:{count}\n")
+        write_logfile(ctx, num, "out")
 
     elif str(ctx.channel.id) == gl_channelid:
         embed = add_embed("利用通知", f'ゲームラボで{num}人退室しました。現在の利用人数は{count}人です。', "gl")
         await ctx.respond(embed=embed)
         await skch.send(embed=embed)
-        with open(filename, "a") as f:
-            f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} ゲームラボ {ctx.author} out:{num} sum:{count}\n")
+        write_logfile(ctx, num, "out")
 
 bot.run(TOKEN)
