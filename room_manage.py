@@ -22,9 +22,9 @@ def add_embed(title, descrip, type):
     embed.set_footer(text="部屋人数管理システム")
     return embed
 
-def write_logfile(ctx, c, io_type):
+def write_logfile(username, c, io_type):
     with open(filename, "a") as f:
-        f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} シス研 {ctx.author} {io_type}:{c} sum:{count}\n")
+        f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} シス研 {username} {io_type}:{c} sum:{count}\n")
 
 #ログファイル生成
 filename = time.strftime("room-%Y-%m-%d-%H-%M-%S") + ".log"
@@ -57,13 +57,13 @@ async def enter(
         embed = add_embed("利用通知", f'シス研で{num}人入室しました。現在の利用人数は{count}人です。', "ck")
         await ctx.respond(embed=embed)
         await glch.send(embed=embed)
-        write_logfile(ctx, num, "in")
+        write_logfile(ctx.author, num, "in")
 
     elif str(ctx.channel.id) == gl_channelid:
         embed = add_embed("利用通知", f'ゲームラボで{num}人入室しました。現在の利用人数は{count}人です。', "gl")
         await ctx.respond(embed=embed)
         await skch.send(embed=embed)
-        write_logfile(ctx, num, "in")
+        write_logfile(ctx.author, num, "in")
 
 @bot.slash_command(guild_ids=[sk_serverid, gl_serverid])
 async def exit(
@@ -85,12 +85,12 @@ async def exit(
         embed = add_embed("利用通知", f'シス研で{num}人退室しました。現在の利用人数は{count}人です。', "ck")
         await ctx.respond(embed=embed)
         await glch.send(embed=embed)
-        write_logfile(ctx, num, "out")
+        write_logfile(ctx.author, num, "out")
 
     elif str(ctx.channel.id) == gl_channelid:
         embed = add_embed("利用通知", f'ゲームラボで{num}人退室しました。現在の利用人数は{count}人です。', "gl")
         await ctx.respond(embed=embed)
         await skch.send(embed=embed)
-        write_logfile(ctx, num, "out")
+        write_logfile(ctx.author, num, "out")
 
 bot.run(TOKEN)
