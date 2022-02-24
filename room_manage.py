@@ -23,12 +23,11 @@ def add_embed(title, descrip, type):
     return embed
 
 def write_logfile(username, c, io_type):
-    with open(filename, "a") as f:
-        f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} シス研 {username} {io_type}:{c} sum:{count}\n")
+    f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} シス研 {username} {io_type}:{c} sum:{count}\n")
 
 #ログファイル生成
 filename = time.strftime("room-%Y-%m-%d-%H-%M-%S") + ".log"
-open(filename, "w").close()
+f = open(filename, "a")
 
 #初期設定
 @bot.listen()
@@ -92,5 +91,11 @@ async def exit(
         await ctx.respond(embed=embed)
         await skch.send(embed=embed)
         write_logfile(ctx.author, num, "out")
+
+@bot.slash_command() #botをログファイルを閉じて停止させる
+async def stop(ctx):
+    f.close()
+    await ctx.respond("botを停止しました。")
+    await exit()
 
 bot.run(TOKEN)
