@@ -151,6 +151,6 @@ async def set(
 async def stop(ctx):
     f.close()
     await ctx.respond("botを停止しました。")
-    exit()
+    await bot.close()
 
 bot.run(TOKEN)
