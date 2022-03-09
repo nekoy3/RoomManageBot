@@ -9,7 +9,11 @@ import sys
 
 bot = discord.Bot()
 config = configparser.ConfigParser()
-config.read('config.ini', encoding="utf-8_sig")
+try:
+    config.read('config.ini', encoding="utf-8_sig")
+except:
+    print("config.iniが存在しません")
+    exit()
 
 first_server_name = str(config['SERVER']['first_server_name'])
 second_server_name = str(config['SERVER']['second_server_name'])
@@ -28,22 +32,36 @@ os.mkdir('logs') if not os.path.exists('logs') else None
 def tail(fn):
     with open(fn, 'r') as latest_file:
         lines = latest_file.readlines()
-    return lines[-1]
+    print(str(lines))
+    if len(lines) == 1:
+        return lines[0]
+    else:
+        return lines[-1]
 
 #最新ログを取得
 try:
-    list_of_files = glob.glob('./logs/*')
-    fn = max(list_of_files, key = os.path.getctime)
-    print(fn)
-    last_log = tail(fn)
-    #引数でcontinueが与えられた場合は人数を引き継ぐ
-    if sys.argv[1] != 'continue':
+    if sys.argv[1] == 'continue':
+        continue_flag = True
+    else:
+        continue_flag = False
+except:
+    continue_flag = False
+
+if continue_flag:
+    try:
+        list_of_files = glob.glob('./logs/*')
+        fn = max(list_of_files, key = os.path.getctime)
+        print("latest log -> " + fn)
+        last_log = tail(fn)
+        #引数でcontinueが与えられた場合は人数を引き継ぐ
+        count = int(last_log.split('sum:')[1])
+    except Exception as e:
+        print(e)
         count = 0
-    count = int(last_log.split('sum:')[1])
-except Exception as e:
-    print(e)
+else:
     count = 0
-print(count)
+
+print("count = " + str(count))
 filename = time.strftime("room-%Y-%m-%d-%H-%M-%S") + ".log"
 f = open("./logs/" + filename, "a")
 
