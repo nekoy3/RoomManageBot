@@ -6,8 +6,8 @@ import configparser
 import glob
 import os
 import sys
-import datetime
-import asyncio
+#import datetime
+#import asyncio
 
 bot = discord.Bot()
 config = configparser.ConfigParser()
@@ -95,41 +95,44 @@ def write_logfile(username, c, io_type, server_name):
 write_logfile('system', count, 'start', 'system')
 
 #毎日午前二時にログファイルを作り直す
-def remake_logfile():
-    global f
-    f.close()
-    make_logfile()
-    write_logfile('system', count, 'start', 'system')
-    print("remaked logfile")
+#asyncioの知識が浅すぎて挫折したので、他の方法も模索しながらいったん保留
+#def remake_logfile():
+#    global f
+#    f.close()
+#    make_logfile()
+#    write_logfile('system', count, 'start', 'system')
+#    print("remaked logfile")
 
 #特定の時刻にメソッドを実行する
 #参考　https://stackoverflow.com/questions/51292027/how-to-schedule-a-task-in-asyncio-so-it-runs-at-a-certain-date
 #また、毎日午前二時にログファイルを作り直すのを実行するようにした
-async def wait_until(dt):
-    now = datetime.datetime.now()
-    await asyncio.sleep((dt - now).total_seconds())
+#async def wait_until(dt):
+#    now = datetime.datetime.now()
+#    await asyncio.sleep((dt - now).total_seconds())
+#
+#async def sleep_one_day():
+#    await asyncio.sleep(30) #86400
 
-async def sleep_one_day():
-    await asyncio.sleep(30) #86400
-
-async def run_at(dt, coro):
-    await wait_until(dt)
-    await coro()
-    while True:
-        sleep_one_day()
-        await coro()
+#async def run_at(dt, coro):
+#    await wait_until(dt)
+#    await coro()
+#    while True:
+#        sleep_one_day()
+#        await coro()
 
 #時刻計算の参考 https://note.nkmk.me/python-datetime-usage/
-dt_next_day = datetime.datetime.today().day + 1
-dt_schedule = datetime.datetime(datetime.datetime.today().year, datetime.datetime.today().month, dt_next_day, 2, 0, 0)
+#dt_next_day = datetime.datetime.today().day + 1
+#dt_schedule = datetime.datetime(datetime.datetime.today().year, datetime.datetime.today().month, dt_next_day, 2, 0, 0)
 
-dt_schedule = datetime.datetime.today() + datetime.timedelta(seconds=30)
-async def log_schedule():
-    loop = asyncio.get_event_loop()
-    loop.create_task(await run_at(dt_schedule, remake_logfile()))
-    loop.run_forever()
+#dt_schedule = datetime.datetime.today() + datetime.timedelta(seconds=30)
+#async def log_schedule():
+#    global dt_schedule
+#    loop = asyncio.get_event_loop()
+#    loop.create_task(await run_at(dt_schedule, remake_logfile()))
+#    loop.run_forever()
 
-asyncio.ensure_future(log_schedule())
+#log_schedule()
+
 
 #初期設定
 @bot.listen()
