@@ -138,13 +138,13 @@ write_logfile('system', count, 'start', 'system')
 @bot.listen()
 async def on_ready():
     print('Logged in as\n' + bot.user.name + "\n" + str(bot.user.id) + "\n------")
-    await bot.change_presence(status=discord.Status.online, activity=discord.Game('/enter, /exit'))
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game('/in, /out'))
     await bot.user.edit(username='部屋人数管理システム')
     chs = [bot.get_partial_messageable(id_dict['one'][1]), bot.get_partial_messageable(id_dict['two'][1])]
     for i in chs:
         await i.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
 
-@bot.slash_command(guild_ids = [id_dict['one'][0], id_dict['two'][0]], name = "in")
+@bot.slash_command(guild_ids = [id_dict['one'][0], id_dict['two'][0]], name = "in", description="部屋に入室するときのコマンドです。")
 async def enter(
     ctx,
     num: Option(int, '利用人数を入力してください'),
@@ -169,7 +169,7 @@ async def enter(
         await one_ch.send(embed=embed)
         write_logfile(ctx.author, num, "in", second_server_name)
 
-@bot.slash_command(guild_ids = [id_dict['one'][0], id_dict['two'][0]], name = "out")
+@bot.slash_command(guild_ids = [id_dict['one'][0], id_dict['two'][0]], name = "out", description="部屋を退室するときのコマンドです。")
 async def out(
     ctx,
     num: Option(int, '退出人数を入力してください'),
@@ -194,7 +194,7 @@ async def out(
         await one_ch.send(embed=embed)
         write_logfile(ctx.author, num, "out", second_server_name)
 
-@bot.slash_command(guild_ids=[id_dict['one'][0], id_dict['two'][0]])
+@bot.slash_command(guild_ids=[id_dict['one'][0], id_dict['two'][0]], description="現在の人数が部屋の人数と会わない場合、気づいた人が現在人数を設定しなおしてください。")
 async def set(
     ctx,
     num: Option(int, '現在の人数を入力してください'),
@@ -217,7 +217,7 @@ async def set(
         await one_ch.send(embed=embed)
         write_logfile(ctx.author, num, "set", second_server_name)
 
-@bot.slash_command() #botをログファイルを閉じて停止させる
+@bot.slash_command(description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
 async def stop(ctx):
     f.close()
     await ctx.respond("botを停止しました。")
