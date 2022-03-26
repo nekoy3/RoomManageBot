@@ -89,10 +89,10 @@ def add_embed(title, descrip, type):
     embed = discord.Embed(title=title, description=descrip, color=int(type_dict[type], 16))
     return embed
 
-def write_logfile(username, c, io_type, server_name):
-    f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} {server_name} {username} {io_type}:{c} sum:{c}\n")
+def write_logfile(username, c, io_type, server_name, sum):
+    f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} {server_name} {username} {io_type}:{c} sum:{sum}\n")
 
-write_logfile('system', count, 'start', 'system')
+write_logfile('system', 0, 'start', 'system', count)
 
 #毎日午前二時にログファイルを作り直す
 #asyncioの知識が浅すぎて挫折したので、他の方法も模索しながらいったん保留
@@ -100,7 +100,7 @@ write_logfile('system', count, 'start', 'system')
 #    global f
 #    f.close()
 #    make_logfile()
-#    write_logfile('system', count, 'start', 'system')
+#    write_logfile('system', 0, 'start', 'system', count)
 #    print("remaked logfile")
 
 #特定の時刻にメソッドを実行する
@@ -161,13 +161,13 @@ async def enter(
         embed = add_embed("利用通知", f'{first_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "one")
         await ctx.respond(embed=embed)
         await two_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "in", first_server_name)
+        write_logfile(ctx.author, num, "in", first_server_name, count)
 
     elif str(ctx.channel.id) == id_dict['two'][1]:
         embed = add_embed("利用通知", f'{second_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await one_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "in", second_server_name)
+        write_logfile(ctx.author, num, "in", second_server_name, count)
 
 @bot.slash_command(guild_ids = [id_dict['one'][0], id_dict['two'][0]], name = "out", description="部屋を退室するときのコマンドです。")
 async def out(
@@ -186,13 +186,13 @@ async def out(
         embed = add_embed("利用通知", f'{first_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "one")
         await ctx.respond(embed=embed)
         await two_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "out", first_server_name)
+        write_logfile(ctx.author, num, "out", first_server_name, count)
 
     elif str(ctx.channel.id) == id_dict['two'][1]:
         embed = add_embed("利用通知", f'{second_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await one_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "out", second_server_name)
+        write_logfile(ctx.author, num, "out", second_server_name, count)
 
 @bot.slash_command(guild_ids=[id_dict['one'][0], id_dict['two'][0]], description="現在の人数が部屋の人数と会わない場合、気づいた人が現在人数を設定しなおしてください。")
 async def set(
@@ -210,12 +210,12 @@ async def set(
         embed = add_embed("現在の人数", f'現在の人数は{count}人です。\n({first_server_name}で編集されました。)', "one")
         await ctx.respond(embed=embed)
         await two_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "set", first_server_name)
+        write_logfile(ctx.author, num, "set", first_server_name, count)
     else:
         embed = add_embed("現在の人数", f'現在の人数は{count}人です。\n({second_server_name}で編集されました。)', "two")
         await ctx.respond(embed=embed)
         await one_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "set", second_server_name)
+        write_logfile(ctx.author, num, "set", second_server_name, count)
 
 @bot.slash_command(description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
 async def stop(ctx):
