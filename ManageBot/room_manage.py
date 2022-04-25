@@ -210,11 +210,11 @@ async def stop(ctx):
     await ctx.respond("botを停止しました。")
     await bot.close()
 
-#@tasks.loop(seconds=30)
-#async def loop(self):
-#    now = datetime.now().strftime('%H:%M')
-#    print("act! " + now)
-#    if now == '17:08':
-#        print("時間だよ")
+@tasks.loop(seconds=30)
+async def loop(self):
+    now = datetime.now().strftime('%H:%M')
+    print("act! " + now)
+    if now == '17:08':
+        print("時間だよ")
 
 bot.run(cfg.TOKEN)
