@@ -6,8 +6,8 @@ import configparser
 import glob
 import os
 import sys
-#import datetime
-#import asyncio
+from discord.ext import tasks
+from datetime import datetime 
 
 bot = discord.Bot()
 config = configparser.ConfigParser()
@@ -222,5 +222,12 @@ async def stop(ctx):
     f.close()
     await ctx.respond("botを停止しました。")
     await bot.close()
+
+@tasks.loop(seconds=60)
+async def loop():
+    now = datetime.now().strftime('%H:%M')
+    if now == '07:00':
+        channel = bot.get_channel(CHANNEL_ID)
+        await channel.send('おはよう')  
 
 bot.run(TOKEN)
