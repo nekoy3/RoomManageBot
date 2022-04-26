@@ -4,9 +4,7 @@ import os
 config = configparser.ConfigParser()
 
 class ConfigClass:
-    global config
-    def __init__(self):
-        self.config = config
+    pass
 
 def create_config():
     config.read('config.ini', encoding="utf-8_sig")
