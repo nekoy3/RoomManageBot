@@ -12,7 +12,6 @@ import asyncio
 import cfg_rw
 
 bot = discord.Bot()
-
 cfg = cfg_rw.main()
 
 print('Starting...')
@@ -130,6 +129,7 @@ async def on_ready():
     chs = [bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])]
     for i in chs:
         await i.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
+    task = asyncio.get_event_loop().create_task(loop())
 
 @bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "in", description="部屋に入室するときのコマンドです。")
 async def enter(
@@ -211,11 +211,21 @@ async def stop(ctx):
     await bot.close()
 
 async def loop():
+    await asyncio.sleep(30)
+    global count, cfg, f, bot
+    one_ch, two_ch = bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])
     while True:
         now = datetime.now().strftime('%H:%M')
-        if now == '11:58':
-            print("時間だよ")
-        await asyncio.sleep(60)
+        if now == cfg.daily_reset_time:
+            if count != 0:
+                count = 0
+                write_logfile("reset", 0, "reset", "", 0)
+                await one_ch.send(embed=add_embed("現在の人数", f'人数が0で無かったため、リセットされました。', "one"))
+                await two_ch.send(embed=add_embed("現在の人数", f'人数が0で無かったため、リセットされました。', "two"))
+            
+            #ログファイルを再生成する
+            f.close()
+            make_logfile()
+        await asyncio.sleep(30)
 
-task = asyncio.get_event_loop().create_task(loop())
 bot.run(cfg.TOKEN)
