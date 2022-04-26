@@ -6,7 +6,8 @@ import glob
 import os
 import sys
 from discord.ext import tasks
-from datetime import datetime 
+from datetime import datetime
+import asyncio
 
 import cfg_rw
 
@@ -121,7 +122,6 @@ write_logfile('system', 0, 'start', 'system', count)
 #log_schedule()
 
 
-#初期設定
 @bot.listen()
 async def on_ready():
     print('Logged in as\n' + bot.user.name + "\n" + str(bot.user.id) + "\n------")
@@ -210,11 +210,12 @@ async def stop(ctx):
     await ctx.respond("botを停止しました。")
     await bot.close()
 
-@tasks.loop(seconds=30)
-async def loop(self):
-    now = datetime.now().strftime('%H:%M')
-    print("act! " + now)
-    if now == '17:08':
-        print("時間だよ")
+async def loop():
+    while True:
+        now = datetime.now().strftime('%H:%M')
+        if now == '11:58':
+            print("時間だよ")
+        await asyncio.sleep(60)
 
+task = asyncio.get_event_loop().create_task(loop())
 bot.run(cfg.TOKEN)
