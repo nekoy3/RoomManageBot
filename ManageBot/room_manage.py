@@ -10,25 +10,17 @@ from datetime import datetime
 import asyncio
 
 import cfg_rw
+import logfile_rw
+import f_global
 
 bot = discord.Bot()
 cfg = cfg_rw.main()
 
+class File:
+    pass
+
 print('Starting...')
 
-#ログファイル生成
-os.mkdir('logs') if not os.path.exists('logs') else None
-
-def tail(fn):
-    with open(fn, 'r') as latest_file:
-        lines = latest_file.readlines()
-    print(str(lines))
-    if len(lines) == 1:
-        return lines[0]
-    else:
-        return lines[-1]
-
-#最新ログを取得
 try:
     if sys.argv[1] == 'continue':
         continue_flag = True
@@ -37,33 +29,14 @@ try:
 except:
     continue_flag = False
 
-#最新(latest)のログファイルを読み取り、最終行から最新の部屋人数を取得
-def read_latest_log():
-    try:
-        list_of_files = glob.glob('./logs/*')
-        fn = max(list_of_files, key = os.path.getctime)
-        print("latest log -> " + fn)
-        last_log = tail(fn)
-        cnt = int(last_log.split('sum:')[1])
-    except Exception as e:
-        print(e)
-        cnt = 0
-    return cnt
-
 if continue_flag:
-    count = read_latest_log()
+    count = logfile_rw.read_latest_log()
 else:
     count = 0
 
 print("count = " + str(count))
 
-#ログファイル作成
-def make_logfile():
-    global f
-    filename = time.strftime("room-%Y-%m-%d-%H-%M-%S") + ".log"
-    f = open("./logs/" + filename, "a")
-
-make_logfile()
+logfile_rw.make_logfile()
 
 def count_manage(n, set_boolean):
     global count
@@ -76,50 +49,7 @@ def add_embed(title, descrip, type):
     embed = discord.Embed(title=title, description=descrip, color=int(cfg.type_dict[type], 16))
     return embed
 
-def write_logfile(username, c, io_type, server_name, sum):
-    f.write(f"{time.strftime('%Y/%m/%d %H:%M:%S')} {server_name} {username} {io_type}:{c} sum:{sum}\n")
-
-write_logfile('system', 0, 'start', 'system', count)
-
-#毎日午前二時にログファイルを作り直す
-#asyncioの知識が浅すぎて挫折したので、他の方法も模索しながらいったん保留
-#def remake_logfile():
-#    global f
-#    f.close()
-#    make_logfile()
-#    write_logfile('system', 0, 'start', 'system', count)
-#    print("remaked logfile")
-
-#特定の時刻にメソッドを実行する
-#参考　https://stackoverflow.com/questions/51292027/how-to-schedule-a-task-in-asyncio-so-it-runs-at-a-certain-date
-#また、毎日午前二時にログファイルを作り直すのを実行するようにした
-#async def wait_until(dt):
-#    now = datetime.datetime.now()
-#    await asyncio.sleep((dt - now).total_seconds())
-#
-#async def sleep_one_day():
-#    await asyncio.sleep(30) #86400
-
-#async def run_at(dt, coro):
-#    await wait_until(dt)
-#    await coro()
-#    while True:
-#        sleep_one_day()
-#        await coro()
-
-#時刻計算の参考 https://note.nkmk.me/python-datetime-usage/
-#dt_next_day = datetime.datetime.today().day + 1
-#dt_schedule = datetime.datetime(datetime.datetime.today().year, datetime.datetime.today().month, dt_next_day, 2, 0, 0)
-
-#dt_schedule = datetime.datetime.today() + datetime.timedelta(seconds=30)
-#async def log_schedule():
-#    global dt_schedule
-#    loop = asyncio.get_event_loop()
-#    loop.create_task(await run_at(dt_schedule, remake_logfile()))
-#    loop.run_forever()
-
-#log_schedule()
-
+logfile_rw.write_logfile('system', 0, 'start', 'system', count)
 
 @bot.listen()
 async def on_ready():
@@ -148,13 +78,13 @@ async def enter(
         embed = add_embed("利用通知", f'{cfg.first_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "one")
         await ctx.respond(embed=embed)
         await two_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "in", cfg.first_server_name, count)
+        logfile_rw.write_logfile(ctx.author, num, "in", cfg.first_server_name, count)
 
     elif str(ctx.channel.id) == cfg.id_dict['two'][1]:
         embed = add_embed("利用通知", f'{cfg.second_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await one_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "in", cfg.second_server_name, count)
+        logfile_rw.write_logfile(ctx.author, num, "in", cfg.second_server_name, count)
 
 @bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "out", description="部屋を退室するときのコマンドです。")
 async def out(
@@ -173,13 +103,13 @@ async def out(
         embed = add_embed("利用通知", f'{cfg.first_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "one")
         await ctx.respond(embed=embed)
         await two_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "out", cfg.first_server_name, count)
+        logfile_rw.write_logfile(ctx.author, num, "out", cfg.first_server_name, count)
 
     elif str(ctx.channel.id) == cfg.id_dict['two'][1]:
         embed = add_embed("利用通知", f'{cfg.second_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await one_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "out", cfg.second_server_name, count)
+        logfile_rw.write_logfile(ctx.author, num, "out", cfg.second_server_name, count)
 
 @bot.slash_command(guild_ids=[cfg.id_dict['one'][0], cfg.id_dict['two'][0]], description="現在の人数が部屋の人数と会わない場合、気づいた人が現在人数を設定しなおしてください。")
 async def set(
@@ -197,12 +127,12 @@ async def set(
         embed = add_embed("現在の人数", f'現在の人数は{count}人です。\n({cfg.first_server_name}で編集されました。)', "one")
         await ctx.respond(embed=embed)
         await two_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "set", cfg.first_server_name, count)
+        logfile_rw.write_logfile(ctx.author, num, "set", cfg.first_server_name, count)
     else:
         embed = add_embed("現在の人数", f'現在の人数は{count}人です。\n({cfg.second_server_name}で編集されました。)', "two")
         await ctx.respond(embed=embed)
         await one_ch.send(embed=embed)
-        write_logfile(ctx.author, num, "set", cfg.second_server_name, count)
+        logfile_rw.write_logfile(ctx.author, num, "set", cfg.second_server_name, count)
 
 @bot.slash_command(description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
 async def stop(ctx):
@@ -212,20 +142,21 @@ async def stop(ctx):
 
 async def loop():
     await asyncio.sleep(30)
-    global count, cfg, f, bot
+    global count, cfg, bot
     one_ch, two_ch = bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])
     while True:
         now = datetime.now().strftime('%H:%M')
         if now == cfg.daily_reset_time:
             if count != 0:
                 count = 0
-                write_logfile("reset", 0, "reset", "", 0)
+                logfile_rw.write_logfile("reset", 0, "reset", "", 0)
                 await one_ch.send(embed=add_embed("現在の人数", f'人数が0で無かったため、リセットされました。', "one"))
                 await two_ch.send(embed=add_embed("現在の人数", f'人数が0で無かったため、リセットされました。', "two"))
             
             #ログファイルを再生成する
-            f.close()
-            make_logfile()
+            f_global.f.close()
+            logfile_rw.make_logfile()
+            logfile_rw.write_logfile("reset", 0, "reset", "", 0)
         await asyncio.sleep(30)
 
 bot.run(cfg.TOKEN)
