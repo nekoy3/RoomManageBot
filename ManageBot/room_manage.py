@@ -56,8 +56,8 @@ async def on_ready():
     await bot.change_presence(status=discord.Status.online, activity=discord.Game('/in, /out'))
     await bot.user.edit(username='部屋人数管理システム')
     chs = [bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])]
-    for i in chs:
-        await i.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
+    #for i in chs:
+    #    await i.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
     task = asyncio.get_event_loop().create_task(loop())
 
 @bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "in", description="部屋に入室するときのコマンドです。")
