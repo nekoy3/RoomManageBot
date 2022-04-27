@@ -1,11 +1,7 @@
 # coding: utf_8
 import discord
-import time
 from discord.commands import Option
-import glob
-import os
 import sys
-from discord.ext import tasks
 from datetime import datetime
 import asyncio
 
