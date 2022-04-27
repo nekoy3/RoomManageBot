@@ -68,11 +68,6 @@ async def enter(
 ):
     one_ch, two_ch = bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])
     count_manage(num, False)
-    if count > cfg.max_count:
-        count_manage(-num, False)
-        embed = add_embed("満員", f"同時利用人数は{cfg.max_count}人以下にして下さい。", "er")
-        await ctx.respond(embed=embed)
-        return
 
     if str(ctx.channel.id) == cfg.id_dict['one'][1]:
         embed = add_embed("利用通知", f'{cfg.first_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "one")
@@ -85,6 +80,11 @@ async def enter(
         await ctx.respond(embed=embed)
         await one_ch.send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "in", cfg.second_server_name, count)
+
+    if count > cfg.max_count:
+        embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
+        await one_ch.send(embed=embed)
+        await two_ch.send(embed=embed)
 
 @bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "out", description="部屋を退室するときのコマンドです。")
 async def out(
@@ -118,8 +118,8 @@ async def set(
 ):
     count_manage(num, True)
     one_ch, two_ch = bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])
-    if count < 0 or count > cfg.max_count:
-        embed = add_embed("エラー", "0人未満または" + str(cfg.max_count) + "人以下の数字を入力してください。", "er")
+    if count < 0:
+        embed = add_embed("エラー", "0人以上の数字を入力してください。", "er")
         await ctx.respond(embed=embed)
         return
     
