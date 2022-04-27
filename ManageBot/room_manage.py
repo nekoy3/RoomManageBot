@@ -132,7 +132,7 @@ async def set(
 
 @bot.slash_command(description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
 async def stop(ctx):
-    f.close()
+    f_global.f.close()
     await ctx.respond("botを停止しました。")
     await bot.close()
 
