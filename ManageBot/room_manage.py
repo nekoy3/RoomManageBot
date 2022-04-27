@@ -64,6 +64,11 @@ async def enter(
 ):
     one_ch, two_ch = bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])
     count_manage(num, False)
+    if count > cfg.max_count and cfg.can_max_over != "True":
+        count_manage(-num, False)
+        embed = add_embed("満員", f"同時利用人数は{cfg.max_count}人以下にして下さい。", "er")
+        await ctx.respond(embed=embed)
+        return
 
     if str(ctx.channel.id) == cfg.id_dict['one'][1]:
         embed = add_embed("利用通知", f'{cfg.first_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "one")
