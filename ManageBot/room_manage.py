@@ -60,11 +60,11 @@ async def on_ready():
 
 @bot.listen()
 async def on_message(ctx):
-
-    if ctx.author.bot :
+    await chs[1].send(ctx.author.bot)
+    if ctx.author.bot:
         return
 
-    message = bot.get_message(ctx.message_id)
+    message = ctx
     if str(ctx.channel.id) == cfg.id_dict['one'][1]:
         await chs[1].send(message)
 
