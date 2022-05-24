@@ -61,10 +61,10 @@ async def on_ready():
 @bot.listen()
 async def on_message(ctx):
     message = ctx.content
-    if str(ctx.channel.id) == cfg.id.dict['one'][1]:
+    if str(ctx.channel.id) == cfg.id_dict['one'][1]:
         await chs[1].send(message)
 
-    if str(ctx.channel.id) == cfg.id.dict['two'][1]:
+    if str(ctx.channel.id) == cfg.id_dict['two'][1]:
         await chs[0].send(message)
 
 @bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "in", description="部屋に入室するときのコマンドです。")
