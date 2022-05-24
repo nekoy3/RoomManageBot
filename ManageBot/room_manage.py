@@ -11,9 +11,11 @@ import f_global
 
 bot = discord.Bot()
 cfg = cfg_rw.main()
-
+logfile_rw.make_logfile()
 class File:
     pass
+chs = []
+stop_warn_infomation_flag = False
 
 print('Starting...')
 
@@ -31,10 +33,6 @@ else:
     count = 0
 
 print("count = " + str(count))
-
-logfile_rw.make_logfile()
-
-chs = []
 
 def count_manage(n, set_boolean):
     global count
@@ -85,10 +83,9 @@ async def enter(
         await chs[0].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "in", cfg.second_server_name, count)
 
-    if count > cfg.max_count:
+    if count > cfg.max_count and stop_warn_infomation_flag == False:
         embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
-        await chs[0].send(embed=embed)
-        await chs[1].send(embed=embed)
+        [await channel.send(embed=embed) for channel in chs]
 
 @bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "out", description="部屋を退室するときのコマンドです。")
 async def out(
@@ -137,6 +134,10 @@ async def set(
         await ctx.respond(embed=embed)
         await chs[0].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "set", cfg.second_server_name, count)
+    
+    if count > cfg.max_count and stop_warn_infomation_flag == False:
+        embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
+        [await channel.send(embed=embed) for channel in chs]
 
 @bot.slash_command(description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
 async def stop(ctx):
@@ -144,10 +145,17 @@ async def stop(ctx):
     await ctx.respond("botを停止しました。")
     await bot.close()
 
+def stop_warn():
+    return datetime.now().strftime('%H:%M'), None
+
 async def loop():
-    await asyncio.sleep(30)
-    global count, cfg, bot, chs
+    await asyncio.sleep(30) #botが起動するまで待機する目安
+    global count, cfg, bot, chs, stop_warn_infomation_flag
+    stop_warn_time = "00:00"
     while True:
+        if stop_warn_infomation_flag:
+            stop_warn_time, stop_warn_infomation_flag = stop_warn()
+        
         now = datetime.now().strftime('%H:%M')
         if now == cfg.daily_reset_time:
             if count != 0:
@@ -160,6 +168,10 @@ async def loop():
             f_global.f.close()
             logfile_rw.make_logfile()
             logfile_rw.write_logfile("reset", 0, "reset", "", 0)
+        
+        if now == stop_warn_time and stop_warn_infomation_flag == None:
+            stop_warn_infomation_flag = False
+        
         await asyncio.sleep(30)
 
 bot.run(cfg.TOKEN)
