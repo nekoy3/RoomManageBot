@@ -1,4 +1,4 @@
-# coding: utf_8
+# coding: utf_8 #テスト
 import discord
 from discord.commands import Option
 import sys
