@@ -58,8 +58,9 @@ async def on_ready():
     #    await i.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
     task = asyncio.get_event_loop().create_task(loop())
 
+@bot.listen()
 async def on_message(ctx):
-    message = ctx.message
+    message = ctx.content
     if str(ctx.channel.id) == cfg.id.dict['one'][1]:
         await chs[1].send(message)
 
