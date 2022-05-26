@@ -1,38 +1,16 @@
 # coding: utf_8 
 import discord
 from discord.commands import Option
-import sys
 from datetime import datetime
 import asyncio
 
-import cfg_rw
 import logfile_rw
 import f_global
+import start
 
-bot = discord.Bot()
-cfg = cfg_rw.main()
-logfile_rw.make_logfile()
-class File:
-    pass
-chs = []
 stop_warn_infomation_flag = False
 
-print('Starting...')
-
-try:
-    if sys.argv[1] == 'continue':
-        continue_flag = True
-    else:
-        continue_flag = False
-except:
-    continue_flag = False
-
-if continue_flag:
-    count = logfile_rw.read_latest_log()
-else:
-    count = 0
-
-print("count = " + str(count))
+bot, cfg, File, chs, continue_flag, count = start.main()
 
 def count_manage(n, set_boolean):
     global count
@@ -44,8 +22,6 @@ def count_manage(n, set_boolean):
 def add_embed(title, descrip, type):
     embed = discord.Embed(title=title, description=descrip, color=int(cfg.type_dict[type], 16))
     return embed
-
-logfile_rw.write_logfile('system', 0, 'start', 'system', count)
 
 @bot.listen()
 async def on_ready():
