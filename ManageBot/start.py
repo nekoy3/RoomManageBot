@@ -10,6 +10,7 @@ def main():
     class File:
         pass
     chs = []
+    logfile_rw.create_log_dir()
     logfile_rw.make_logfile()
 
     print('Starting...')
