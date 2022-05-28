@@ -1,10 +1,8 @@
 # coding: utf_8 
 import discord
-from discord import Webhook
 from discord.commands import Option
 from datetime import datetime
 import asyncio
-import aiohttp
 
 import logfile_rw
 import f_global
@@ -32,33 +30,22 @@ async def on_ready():
     await bot.change_presence(status=discord.Status.online, activity=discord.Game('/in, /out'))
     await bot.user.edit(username='部屋人数管理システム')
     chs = [bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])]
-    #for ch in chs:
-    #    await ch.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
+    #for i in chs:
+    #    await i.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
     task = asyncio.get_event_loop().create_task(loop())
 
-'''
-@bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "m", description="相手チャンネルにメッセージを送信します。")
-async def send_message(ctx, s: Option(str, '送信するメッセージを入力してください。')):
+@bot.listen()
+async def on_message(ctx):
+    await chs[1].send(ctx.author.bot)
+    if ctx.author.bot:
+        return
+
+    message = ctx
     if str(ctx.channel.id) == cfg.id_dict['one'][1]:
-        await chs[1].send(ctx + "/" + s)
-    
-    async with aiohttp.ClientSession() as session:
-        webhook = Webhook.from_url('https://discord.com/api/webhooks/979587704318754836/BGkvlI0ZCkbzFOk7aHhxH9TXmDtTAz4mJNhA_d1WJHPO_3jr1ZUoeInCojyTzhcboU94', session=session)
-        await webhook.send('Hello World', username='Foo')
+        await chs[1].send(message)
 
-    #if str(ctx.channel.id) == cfg.id_dict['two'][1]:
-    #    await chs[0].send(message)
-
-    contextが含む情報と呼び出し
-    <Message id=979588608216412190 
-    channel=<TextChannel id=956435215272779796 name='general' position=0 nsfw=False news=False category_id=956435214824009749> 
-    type=<MessageType.default: 0> 
-    author=<Member id=495869408770654228 name='ねこ' discriminator='1490' bot=False nick=None 
-        guild=<Guild id=956435214824009748 name='ねこのサーバー' shard_id=0 chunked=False member_count=3>> 
-    flags=<MessageFlags value=0>>
-
-    botか否か ctx.author.bot(type:bool)、メッセージ内容 ctx.content(type:str)、メッセージID ctx.id(type:int)、ユーザー名ctx.author.name(type:str)、ニックネームctx.author.nick(type:str、存在しない場合Noneを返す)
-    '''
+    if str(ctx.channel.id) == cfg.id_dict['two'][1]:
+        await chs[0].send(message)
 
 @bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "in", description="部屋に入室するときのコマンドです。")
 async def enter(
