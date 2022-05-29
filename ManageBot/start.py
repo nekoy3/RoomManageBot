@@ -1,55 +1,26 @@
-<<<<<<< HEAD
 import sys
 import discord
 
 import logfile_rw
 import cfg_rw
 
-def main():
-    bot = discord.Bot()
-    cfg = cfg_rw.main()
-    class File:
-        pass
-    chs = []
-    logfile_rw.make_logfile()
-
-    print('Starting...')
-
-    try:
-        if sys.argv[1] == 'continue':
-            continue_flag = True
-        else:
-            continue_flag = False
-    except:
-        continue_flag = False
-
-    if continue_flag:
-        count = logfile_rw.read_latest_log()
+def decolator_fix(ids):
+    one = ids['one'][0]
+    two = ids['two'][0]
+    if one == two:
+        return [one]
     else:
-        count = 0
-
-    print("count = " + str(count))
-
-    logfile_rw.write_logfile('system', 0, 'start', 'system', count)
-    return bot, cfg, File, chs, continue_flag, count
-
-if __name__ == '__main__':
-=======
-import sys
-import discord
-
-import logfile_rw
-import cfg_rw
+        return [one, two]
 
 def main():
     bot = discord.Bot()
     cfg = cfg_rw.main()
-    class File:
-        pass
     chs = []
     logfile_rw.create_log_dir()
     logfile_rw.make_logfile()
-
+    
+    #デコレータに使用するチャンネルIDが重複する場合の対策
+    ch_ids = decolator_fix(cfg.id_dict)
     print('Starting...')
 
     try:
@@ -68,8 +39,7 @@ def main():
     print("count = " + str(count))
 
     logfile_rw.write_logfile('system', 0, 'start', 'system', count)
-    return bot, cfg, File, chs, continue_flag, count
+    return bot, cfg, chs, continue_flag, count, ch_ids
 
 if __name__ == '__main__':
->>>>>>> 8c1ef775011fb0bf7df9abdc07eb38680ca658f2
     main()

@@ -10,7 +10,8 @@ import start
 
 stop_warn_infomation_flag = False
 
-bot, cfg, File, chs, continue_flag, count = start.main()
+bot, cfg, chs, continue_flag, count, ch_ids = start.main()
+print(ch_ids)
 
 def count_manage(n, set_boolean):
     global count
@@ -47,7 +48,7 @@ async def on_message(ctx):
     if str(ctx.channel.id) == cfg.id_dict['two'][1]:
         await chs[0].send(message)
 
-@bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "in", description="部屋に入室するときのコマンドです。")
+@bot.slash_command(guild_ids=ch_ids, name="in", description="部屋に入室するときのコマンドです。")
 async def enter(
     ctx,
     num: Option(int, '利用人数を入力してください'),
@@ -76,7 +77,7 @@ async def enter(
         embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
         [await channel.send(embed=embed) for channel in chs]
 
-@bot.slash_command(guild_ids = [cfg.id_dict['one'][0], cfg.id_dict['two'][0]], name = "out", description="部屋を退室するときのコマンドです。")
+@bot.slash_command(guild_ids=ch_ids, name="out", description="部屋を退室するときのコマンドです。")
 async def out(
     ctx,
     num: Option(int, '退出人数を入力してください'),
@@ -101,7 +102,7 @@ async def out(
         await chs[0].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "out", cfg.second_server_name, count)
 
-@bot.slash_command(guild_ids=[cfg.id_dict['one'][0], cfg.id_dict['two'][0]], description="現在の人数が部屋の人数と会わない場合、気づいた人が現在人数を設定しなおしてください。")
+@bot.slash_command(guild_ids=ch_ids, description="現在の人数が部屋の人数と会わない場合、気づいた人が現在人数を設定しなおしてください。")
 async def set(
     ctx,
     num: Option(int, '現在の人数を入力してください'),
@@ -128,7 +129,7 @@ async def set(
         embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
         [await channel.send(embed=embed) for channel in chs]
 
-@bot.slash_command(description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
+@bot.slash_command(guild_ids=ch_ids, description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
 async def stop(ctx):
     f_global.f.close()
     await ctx.respond("botを停止しました。")
