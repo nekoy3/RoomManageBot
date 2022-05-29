@@ -29,14 +29,14 @@ def main():
         configClass.TOKEN = str(config['TOKEN']['token'])
 
         configClass.type_dict = {'one': config['SERVER']['first_server_color'], 'two': config['SERVER']['second_server_color'], 'er': config['OTHER']['error_message_color']}
-        configClass.id_dict = {'one': [config['SERVER']['first_server_id'], config['CHANNEL']['first_channel_id']], 'two': [config['SERVER']['second_server_id'], config['CHANNEL']['second_channel_id']]}
+        configClass.id_dict = {'one': [int(config['SERVER']['first_server_id']), int(config['CHANNEL']['first_channel_id'])], 'two': [int(config['SERVER']['second_server_id']), int(config['CHANNEL']['second_channel_id'])]}
         configClass.max_count = int(config['OTHER']['max_roomcount'])
         configClass.can_max_over = config['OTHER']['can_max_over']
         configClass.daily_reset_time = config['OTHER']['daily_reset_time']
         configClass.stop_warn_delay_minutes = int(config['OTHER']['stop_warn_delay_minutes'])
 
-    except:
-        print("config.iniが存在しないか、設定が間違っています。")
+    except Exception as e:
+        print("config.iniが存在しないか、設定が間違っています。\n" + str(e))
         #ファイルの存在確認(カレントディレクトリにconfig.iniがあるか)
         if not os.path.isfile('config.ini'):
             create_config()

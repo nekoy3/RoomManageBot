@@ -11,8 +11,6 @@ import start
 stop_warn_infomation_flag = False
 
 bot, cfg, chs, continue_flag, count, ch_ids = start.main()
-print(ch_ids)
-
 def count_manage(n, set_boolean):
     global count
     if set_boolean:
@@ -48,7 +46,7 @@ async def on_message(ctx):
     if str(ctx.channel.id) == cfg.id_dict['two'][1]:
         await chs[0].send(message)
 
-@bot.slash_command(guild_ids=ch_ids, name="in", description="部屋に入室するときのコマンドです。")
+@bot.slash_command(guild_id=ch_ids, name="in", description="部屋に入室するときのコマンドです。")
 async def enter(
     ctx,
     num: Option(int, '利用人数を入力してください'),
@@ -61,13 +59,13 @@ async def enter(
         await ctx.respond(embed=embed)
         return
 
-    if str(ctx.channel.id) == cfg.id_dict['one'][1]:
+    if ctx.channel.id == cfg.id_dict['one'][1]:
         embed = add_embed("利用通知", f'{cfg.first_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "one")
         await ctx.respond(embed=embed)
         await chs[1].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "in", cfg.first_server_name, count)
 
-    elif str(ctx.channel.id) == cfg.id_dict['two'][1]:
+    elif ctx.channel.id == cfg.id_dict['two'][1]:
         embed = add_embed("利用通知", f'{cfg.second_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await chs[0].send(embed=embed)
@@ -77,7 +75,7 @@ async def enter(
         embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
         [await channel.send(embed=embed) for channel in chs]
 
-@bot.slash_command(guild_ids=ch_ids, name="out", description="部屋を退室するときのコマンドです。")
+@bot.slash_command(guild_id=ch_ids, name="out", description="部屋を退室するときのコマンドです。")
 async def out(
     ctx,
     num: Option(int, '退出人数を入力してください'),
@@ -90,19 +88,19 @@ async def out(
         await ctx.respond(embed=embed)
         return
 
-    if str(ctx.channel.id) == cfg.id_dict['one'][1]:
+    if ctx.channel.id == cfg.id_dict['one'][1]:
         embed = add_embed("利用通知", f'{cfg.first_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "one")
         await ctx.respond(embed=embed)
         await chs[1].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "out", cfg.first_server_name, count)
 
-    elif str(ctx.channel.id) == cfg.id_dict['two'][1]:
+    elif ctx.channel.id == cfg.id_dict['two'][1]:
         embed = add_embed("利用通知", f'{cfg.second_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await chs[0].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "out", cfg.second_server_name, count)
 
-@bot.slash_command(guild_ids=ch_ids, description="現在の人数が部屋の人数と会わない場合、気づいた人が現在人数を設定しなおしてください。")
+@bot.slash_command(guild_id=ch_ids, description="現在の人数が部屋の人数と会わない場合、気づいた人が現在人数を設定しなおしてください。")
 async def set(
     ctx,
     num: Option(int, '現在の人数を入力してください'),
@@ -114,7 +112,7 @@ async def set(
         await ctx.respond(embed=embed)
         return
     
-    if str(ctx.channel.id) == cfg.id_dict['one'][1]:
+    if ctx.channel.id == cfg.id_dict['one'][1]:
         embed = add_embed("現在の人数", f'現在の人数は{count}人です。\n({cfg.first_server_name}で編集されました。)', "one")
         await ctx.respond(embed=embed)
         await chs[1].send(embed=embed)
@@ -129,7 +127,7 @@ async def set(
         embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
         [await channel.send(embed=embed) for channel in chs]
 
-@bot.slash_command(guild_ids=ch_ids, description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
+@bot.slash_command(guild_id=ch_ids, description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
 async def stop(ctx):
     f_global.f.close()
     await ctx.respond("botを停止しました。")
