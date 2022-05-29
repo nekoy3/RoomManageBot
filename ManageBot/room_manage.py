@@ -1,8 +1,10 @@
 # coding: utf_8 
 import discord
+from discord import Webhook
 from discord.commands import Option
 from datetime import datetime
 import asyncio
+import aiohttp
 
 import logfile_rw
 import f_global
@@ -10,7 +12,7 @@ import start
 
 stop_warn_infomation_flag = False
 
-bot, cfg, chs, continue_flag, count, ch_ids = start.main()
+bot, guilds, cfg, chs, continue_flag, count, ch_ids = start.main()
 def count_manage(n, set_boolean):
     global count
     if set_boolean:
@@ -22,28 +24,50 @@ def add_embed(title, descrip, type):
     embed = discord.Embed(title=title, description=descrip, color=int(cfg.type_dict[type], 16))
     return embed
 
+async def webhook_send(url, str, username, icon):
+    async with aiohttp.ClientSession() as session:
+        webhook = Webhook.from_url(url, session=session)
+        await webhook.send(str, username=username, avatar_url=icon)
+
 @bot.listen()
 async def on_ready():
     global chs
     print('Logged in as\n' + bot.user.name + "\n" + str(bot.user.id) + "\n------")
     await bot.change_presence(status=discord.Status.online, activity=discord.Game('/in, /out'))
     await bot.user.edit(username='部屋人数管理システム')
+
+    async with aiohttp.ClientSession() as session:
+        webhook = Webhook.from_url(cfg.webhooks[0], session=session)
+        cfg.id_dict['one'][1] = webhook.channel_id
+        webhook = Webhook.from_url(cfg.webhooks[1], session=session)
+        cfg.id_dict['two'][1] = webhook.channel_id
+
     chs = [bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])]
     #for i in chs:
     #    await i.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
     task = asyncio.get_event_loop().create_task(loop())
 
 @bot.listen()
-async def on_message(ctx):
-    await chs[1].send(ctx.author.bot)
-    if ctx.author.bot:
+async def on_message(message):
+    if message.author.bot:
         return
 
-    message = ctx
-    if str(ctx.channel.id) == cfg.id_dict['one'][1]:
-        await chs[1].send(message)
+    #ユーザー名とアイコンを取得
+    if message.author.nick != None:
+        user_name = message.author.nick
+    else:
+        user_name = message.author.name
+    
+    member_id = message.author.id
+    if message.channel.id == cfg.id_dict['one'][1]:
+        member = guilds[0].get_member(member_id)
+        print(member)
+        user_icon = member.avatar_url
+        await webhook_send(cfg.webhooks[1], "aaa", user_name, user_icon)
 
-    if str(ctx.channel.id) == cfg.id_dict['two'][1]:
+    if message.channel.id == cfg.id_dict['two'][1]:
+        member = guilds[1].get_member(member_id)
+        user_icon = member.avatar_url
         await chs[0].send(message)
 
 @bot.slash_command(guild_id=ch_ids, name="in", description="部屋に入室するときのコマンドです。")

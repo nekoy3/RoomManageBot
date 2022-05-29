@@ -18,6 +18,8 @@ def main():
     chs = []
     logfile_rw.create_log_dir()
     logfile_rw.make_logfile()
+
+    guilds = [bot.get_guild(cfg.id_dict['one'][0]), bot.get_guild(cfg.id_dict['two'][0])]
     
     #デコレータに使用するチャンネルIDが重複する場合の対策
     ch_ids = decolator_fix(cfg.id_dict)
@@ -39,7 +41,7 @@ def main():
     print("count = " + str(count))
 
     logfile_rw.write_logfile('system', 0, 'start', 'system', count)
-    return bot, cfg, chs, continue_flag, count, ch_ids
+    return bot, guilds, cfg, chs, continue_flag, count, ch_ids
 
 if __name__ == '__main__':
     main()
