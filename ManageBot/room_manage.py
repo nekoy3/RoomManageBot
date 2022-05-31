@@ -12,7 +12,7 @@ import start
 
 stop_warn_infomation_flag = False
 
-bot, guilds, cfg, chs, continue_flag, count, ch_ids = start.main()
+bot, guilds, cfg, chs, continue_flag, count, ch_ids, hook_list = start.main()
 def count_manage(n, set_boolean):
     global count
     if set_boolean:
@@ -27,48 +27,61 @@ def add_embed(title, descrip, type):
 async def webhook_send(url, str, username, icon):
     async with aiohttp.ClientSession() as session:
         webhook = Webhook.from_url(url, session=session)
-        await webhook.send(str, username=username, avatar_url=icon)
+        #print(webhook.channel_id + " " + webhook.guild_id)
+        await webhook.send(str, username=username) #, avatar_url=icon)
 
 @bot.listen()
 async def on_ready():
-    global chs
+    global chs, hook_list, guilds
     print('Logged in as\n' + bot.user.name + "\n" + str(bot.user.id) + "\n------")
     await bot.change_presence(status=discord.Status.online, activity=discord.Game('/in, /out'))
     await bot.user.edit(username='部屋人数管理システム')
+    chs = [bot.get_partial_messageable(cfg.channel_id_list[0]), bot.get_partial_messageable(cfg.guild_id_list[1])]
+    guilds = [bot.get_guild(cfg.channel_id_list[0]), bot.get_guild(cfg.channel_id_list[1])]
+    
+    #channel = bot.get_channel(cfg.channel_id_list[0])
+    #print(channel)
+    # --> None
+    '''
+    #チャンネルからwebhookを取得する
+    for ch in chs:
+        for hook in ch.webhooks:
+            hook_list.append(hook)
+    #チャンネルがTextChannelオブジェクトでは無くPartialMessageableオブジェクトのため、webhook取得が不可
+    #TextChannelオブジェクトの取得(get_channel)はNoneTypeを返すため、不可（原因不明）
+    #webhookからチャンネル取得->webhookオブジェクトにchannel(もしくはchannel_id)属性が存在はするがNoneを返してくるため不可
+    '''
 
-    async with aiohttp.ClientSession() as session:
-        webhook = Webhook.from_url(cfg.webhooks[0], session=session)
-        cfg.id_dict['one'][1] = webhook.channel_id
-        webhook = Webhook.from_url(cfg.webhooks[1], session=session)
-        cfg.id_dict['two'][1] = webhook.channel_id
-
-    chs = [bot.get_partial_messageable(cfg.id_dict['one'][1]), bot.get_partial_messageable(cfg.id_dict['two'][1])]
-    #for i in chs:
-    #    await i.send("部屋人数管理システムを起動しました。現在の部屋人数は" + str(count) + "人です。異なる場合は/setコマンドを使用してください。")
     task = asyncio.get_event_loop().create_task(loop())
 
-@bot.listen()
-async def on_message(message):
-    if message.author.bot:
-        return
-
+#メッセージ取得時メッセージ内容にアクセスすることが出来ないためスラッシュコマンドでの実装（応急処置）
+@bot.slash_command(guild_id=ch_ids, name="gc", description="相手サーバーにメッセージを送信するためのコマンドです。")
+async def global_chat(
+    ctx,
+    msg: Option(str, '渡す文字列を入力'),
+):
+    global guilds
     #ユーザー名とアイコンを取得
-    if message.author.nick != None:
-        user_name = message.author.nick
+    if ctx.author.nick != None:
+        user_name = ctx.author.nick
     else:
-        user_name = message.author.name
-    
-    member_id = message.author.id
-    if message.channel.id == cfg.id_dict['one'][1]:
-        member = guilds[0].get_member(member_id)
-        print(member)
-        user_icon = member.avatar_url
-        await webhook_send(cfg.webhooks[1], "aaa", user_name, user_icon)
+        user_name = ctx.author.name
 
-    if message.channel.id == cfg.id_dict['two'][1]:
-        member = guilds[1].get_member(member_id)
-        user_icon = member.avatar_url
-        await chs[0].send(message)
+    cid = ctx.channel.id
+    #member_id = ctx.author.id
+
+    if cid == cfg.channel_id_list[0]:
+        #member = guilds[0].get_member(member_id)
+        #user_icon = member.avatar_url
+        #guildが取得できないためパス(アイコン取得)
+        await webhook_send(cfg.webhooks[1], msg, user_name, None)
+
+    if cid == cfg.channel_id_list[1]:
+        #member = guilds[1].get_member(member_id)
+        #user_icon = member.avatar_url
+        await webhook_send(cfg.webhooks[0], msg, user_name, None)
+    await ctx.respond("message recieved")
+    await ctx.delete()
 
 @bot.slash_command(guild_id=ch_ids, name="in", description="部屋に入室するときのコマンドです。")
 async def enter(
@@ -83,13 +96,13 @@ async def enter(
         await ctx.respond(embed=embed)
         return
 
-    if ctx.channel.id == cfg.id_dict['one'][1]:
+    if ctx.channel.id == cfg.channel_id_list[0]:
         embed = add_embed("利用通知", f'{cfg.first_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "one")
         await ctx.respond(embed=embed)
         await chs[1].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "in", cfg.first_server_name, count)
 
-    elif ctx.channel.id == cfg.id_dict['two'][1]:
+    elif ctx.channel.id == cfg.guild_id_list[1]:
         embed = add_embed("利用通知", f'{cfg.second_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await chs[0].send(embed=embed)
@@ -112,13 +125,13 @@ async def out(
         await ctx.respond(embed=embed)
         return
 
-    if ctx.channel.id == cfg.id_dict['one'][1]:
+    if ctx.channel.id == cfg.channel_id_list[0]:
         embed = add_embed("利用通知", f'{cfg.first_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "one")
         await ctx.respond(embed=embed)
         await chs[1].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "out", cfg.first_server_name, count)
 
-    elif ctx.channel.id == cfg.id_dict['two'][1]:
+    elif ctx.channel.id == cfg.guild_id_list[1]:
         embed = add_embed("利用通知", f'{cfg.second_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await chs[0].send(embed=embed)
@@ -136,7 +149,7 @@ async def set(
         await ctx.respond(embed=embed)
         return
     
-    if ctx.channel.id == cfg.id_dict['one'][1]:
+    if ctx.channel.id == cfg.channel_id_list[0]:
         embed = add_embed("現在の人数", f'現在の人数は{count}人です。\n({cfg.first_server_name}で編集されました。)', "one")
         await ctx.respond(embed=embed)
         await chs[1].send(embed=embed)
