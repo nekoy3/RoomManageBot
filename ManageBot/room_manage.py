@@ -34,7 +34,7 @@ async def webhook_send(url, str, username, icon):
 async def on_ready():
     global chs, hook_list, guilds
     print('Logged in as\n' + bot.user.name + "\n" + str(bot.user.id) + "\n------")
-    await bot.change_presence(status=discord.Status.online, activity=discord.Game('/in, /out'))
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game('/in, /out, /gc'))
     await bot.user.edit(username='部屋人数管理システム')
     chs = [bot.get_partial_messageable(cfg.channel_id_list[0]), bot.get_partial_messageable(cfg.guild_id_list[1])]
     guilds = [bot.get_guild(cfg.channel_id_list[0]), bot.get_guild(cfg.channel_id_list[1])]
@@ -70,18 +70,17 @@ async def global_chat(
     cid = ctx.channel.id
     #member_id = ctx.author.id
 
-    if cid == cfg.channel_id_list[0]:
+    if cid == cfg.globalchat_channel_id_list[0]:
         #member = guilds[0].get_member(member_id)
         #user_icon = member.avatar_url
         #guildが取得できないためパス(アイコン取得)
         await webhook_send(cfg.webhooks[1], msg, user_name, None)
 
-    if cid == cfg.channel_id_list[1]:
+    if cid == cfg.globalchat_channel_id_list[1]:
         #member = guilds[1].get_member(member_id)
         #user_icon = member.avatar_url
         await webhook_send(cfg.webhooks[0], msg, user_name, None)
-    await ctx.respond("message recieved")
-    await ctx.delete()
+    await ctx.respond('sent > ' + msg)
 
 @bot.slash_command(guild_id=ch_ids, name="in", description="部屋に入室するときのコマンドです。")
 async def enter(
