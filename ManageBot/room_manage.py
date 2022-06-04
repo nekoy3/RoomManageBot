@@ -36,8 +36,8 @@ async def on_ready():
     print('Logged in as\n' + bot.user.name + "\n" + str(bot.user.id) + "\n------")
     await bot.change_presence(status=discord.Status.online, activity=discord.Game('/in, /out, /gc'))
     await bot.user.edit(username='部屋人数管理システム')
-    chs = [bot.get_partial_messageable(cfg.channel_id_list[0]), bot.get_partial_messageable(cfg.guild_id_list[1])]
-    guilds = [bot.get_guild(cfg.channel_id_list[0]), bot.get_guild(cfg.channel_id_list[1])]
+    chs = [bot.get_partial_messageable(cfg.channel_id_list[0]), bot.get_partial_messageable(cfg.channel_id_list[1])]
+    guilds = [bot.get_guild(cfg.guild_id_list[0]), bot.get_guild(cfg.guild_id_list[1])]
     
     #channel = bot.get_channel(cfg.channel_id_list[0])
     #print(channel)
@@ -101,7 +101,7 @@ async def enter(
         await chs[1].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "in", cfg.first_server_name, count)
 
-    elif ctx.channel.id == cfg.guild_id_list[1]:
+    elif ctx.channel.id == cfg.channel_id_list[1]:
         embed = add_embed("利用通知", f'{cfg.second_server_name}で{num}人入室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await chs[0].send(embed=embed)
@@ -130,7 +130,7 @@ async def out(
         await chs[1].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "out", cfg.first_server_name, count)
 
-    elif ctx.channel.id == cfg.guild_id_list[1]:
+    elif ctx.channel.id == cfg.channel_id_list[1]:
         embed = add_embed("利用通知", f'{cfg.second_server_name}で{num}人退室しました。現在の利用人数は{count}人です。', "two")
         await ctx.respond(embed=embed)
         await chs[0].send(embed=embed)
