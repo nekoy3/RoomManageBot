@@ -33,7 +33,13 @@ def main():
         #configClass.id_dict = {'one': [int(config['SERVER']['first_server_id']), 0], 'two': [int(config['SERVER']['second_server_id']), 0]}
         configClass.globalchat_channel_id_list = [int(config['CHAT']['first_channel_id']), int(config['CHAT']['second_channel_id'])]
         configClass.channel_id_list = [int(config['CHANNEL']['first_channel_id']), int(config['CHANNEL']['second_channel_id'])]
+        
         configClass.guild_id_list = [int(config['SERVER']['first_server_id']), int(config['SERVER']['second_server_id'])]
+        if configClass.guild_id_list[0] == configClass.guild_id_list[1]:
+            configClass.guild_id_list = [configClass.guild_id_list[0]]
+        
+            
+
         configClass.max_count = int(config['OTHER']['max_roomcount'])
         configClass.can_max_over = config['OTHER']['can_max_over']
         configClass.daily_reset_time = config['OTHER']['daily_reset_time']
