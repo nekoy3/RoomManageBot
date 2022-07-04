@@ -11,6 +11,7 @@ import f_global
 import start
 
 stop_warn_infomation_flag = False
+stop_warn_count = 0
 
 bot, guilds, cfg, chs, continue_flag, count, ch_ids, hook_list = start.main()
 def count_manage(n, set_boolean):
@@ -59,6 +60,9 @@ async def on_ready():
     '''
 
     task = asyncio.get_event_loop().create_task(loop())
+
+    
+
 
 #メッセージ取得時メッセージ内容にアクセスすることが出来ないためスラッシュコマンドでの実装（応急処置）
 @bot.slash_command(guild_id=ch_ids, name="gc", description="相手サーバーにメッセージを送信するためのコマンドです。")
@@ -118,10 +122,6 @@ async def enter(
         await chs[0].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "in", cfg.second_server_name, count)
 
-    if count > cfg.max_count and stop_warn_infomation_flag == False:
-        embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
-        [await channel.send(embed=embed) for channel in chs]
-
 @bot.slash_command(guild_id=ch_ids, name="out", description="部屋を退室するときのコマンドです。")
 async def out(
     ctx,
@@ -170,9 +170,7 @@ async def set(
         await chs[0].send(embed=embed)
         logfile_rw.write_logfile(ctx.author, num, "set", cfg.second_server_name, count)
     
-    if count > cfg.max_count and stop_warn_infomation_flag == False:
-        embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
-        [await channel.send(embed=embed) for channel in chs]
+    
 
 @bot.slash_command(guild_id=ch_ids, description="使わないでください。botを停止します。") #botをログファイルを閉じて停止させる
 async def stop(ctx):
@@ -185,12 +183,10 @@ def stop_warn():
 
 async def loop():
     await asyncio.sleep(30) #botが起動するまで待機する目安
-    global count, cfg, bot, chs, stop_warn_infomation_flag
+    global count, cfg, bot, chs
     stop_warn_time = "00:00"
     while True:
-        if stop_warn_infomation_flag:
-            stop_warn_time, stop_warn_infomation_flag = stop_warn()
-        
+
         now = datetime.now().strftime('%H:%M')
         if now == cfg.daily_reset_time:
             if count != 0:
@@ -203,10 +199,22 @@ async def loop():
             f_global.f.close()
             logfile_rw.make_logfile()
             logfile_rw.write_logfile("reset", 0, "reset", "", 0)
-        
-        if now == stop_warn_time and stop_warn_infomation_flag == None:
+
+        global stop_warn_infomation_flag
+        global stop_warn_count
+
+        if stop_warn_count > cfg.stop_warn_delay_minutes*2:
+            stop_warn_count = 0
             stop_warn_infomation_flag = False
-        
+
+        if count > cfg.max_count and stop_warn_infomation_flag == False:
+            embed = add_embed("警告", f"定員{cfg.max_count}人に対して、現在大人数が入室しています。\n換気し、私語を控えるようにしてください。", "er")
+            [await channel.send(embed=embed) for channel in chs]
+            stop_warn_infomation_flag = True
+            
+        if stop_warn_infomation_flag:
+            stop_warn_count += 1
+
         await asyncio.sleep(30)
 
 bot.run(cfg.TOKEN)
